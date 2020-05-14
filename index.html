@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Text Editor</title>
+    <link rel="stylesheet" href="css/photon.css">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        ::-moz-selection { background: gray;color:blanchedalmond }
+        ::selection {  background: gray;color:blanchedalmond}
+        .btn-class{
+            position: relative;
+            right:5vw;
+            padding:5px;
+            width:10vw;
+        }
+        @media screen and (min-width:768px){
+            .btn-class{width:6vw;}
+        }
+        .btn-class span{
+            margin-left: 10px;
+        }
+        textarea{
+            width: 100%;
+            height:100%;
+            resize: none;
+            border:none;
+            outline: none;
+            font-size: 20px;
+            overflow: auto;
+        }
+        .box{
+            position: absolute;
+            top:0;
+            left:7vw;
+        }
+        .box select{
+            background: gray;
+            color:#fff;
+            padding:5px 10px;
+            width:150px;
+            height:30px;
+            border:none;
+            font-size: 14px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+            -webkit-appearance: button;
+            outline: none;
+        }
+        .center{
+            position: absolute;
+            left:25vw;
+        }
+        input[type="checkbox"]{
+            position: relative;
+            width:50px;
+            height:25px;
+            -webkit-appearance: none;
+            background: gray;
+            outline: none;
+            border-radius:20px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+            transition: 0.5s;
+        }
+        input:checked[type="checkbox"]{
+            background: black;
+        }
+        input[type="checkbox"]:before{
+            content:'';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border-radius: 20px;
+            top:0;
+            left:0;
+            background: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: 0.5s;
+        }
+        input:checked[type="checkbox"]:before{
+            left:25px;
+        }
+    </style>
+  </head>
+
+  <body></body>
+    <div class="window">
+      <header class="toolbar toolbar-header">
+     <div class="toolbar-actions">
+    <div class="btn-group">
+      <button class="btn btn-default" onclick="increaseFont()">
+        <span class="icon icon-plus"></span>
+      </button>
+      <button class="btn btn-default" onclick="decreaseFont()">
+        <span class="icon icon-minus"></span>
+      </button>
+      <div class="box">
+        <select id="select-font" onchange="changeFontSize()">
+        <option value="20">Font Size</option>
+        <option value="16">16px</option>
+        <option value="20">20px</option>
+        <option value="24">24px</option>
+        <option value="28">28px</option>
+        <option value="32">32px</option>
+        <option value="36">36px</option>
+        <option value="40">40px</option>
+        <option value="44">44px</option>
+        <option value="48">48px</option>
+        <option value="50">50px</option>
+      </select>
+    </div>
+    <div class="center">
+        <input type="checkbox" name="mode" onchange="mode()" id="mode">
+    </div>
+    </div>
+    <button class="btn btn-default pull-right btn-class" onclick="saveText()">
+      <span class="icon icon-download icon-text">Save</span>
+    </button>
+  </div>
+      </header>
+      <div class="window-content">
+        <textarea autofocus></textarea>
+      </div>
+    </div>
+    <script>
+        const electron = require('electron');
+        const { ipcRenderer,Menu } = electron;
+        const BrowserWindow = electron.remote.BrowserWindow;
+        const path = require('path');
+        const url = require('url');
+
+        let textarea = document.querySelector('textarea');
+        let defaultFontSize = 20;
+        function increaseFont(){
+            textarea.style.fontSize = `${++defaultFontSize}px`;
+        }
+        function decreaseFont(){
+            textarea.style.fontSize = `${--defaultFontSize}px`;
+        }
+        function changeFontSize(){
+            var select = document.querySelector('select');
+            var val = Number(select.value);
+            textarea.style.fontSize = `${val}px`;
+        }
+        function mode(){
+            var mode = document.getElementById('mode');
+            if(mode.checked){
+                textarea.style.backgroundColor = "#333";
+                textarea.style.color = "#ff7a7a";
+            }
+            else{
+                textarea.style.backgroundColor = "";
+                textarea.style.color = "";
+            }    
+        }
+        function saveText(){
+            let text = textarea.value;
+            console.log(text);
+            ipcRenderer.send('savetext',text);
+        }
+        ipcRenderer.on('saved',(event,results)=>{
+            if(results === 'success'){
+                const notification = {
+                    title: 'Text Editor ',
+                    body: 'File Saved Successfully',
+                    icon : path.join(__dirname,'./assets/images/success.png')
+                }
+                const myNotification = new window.Notification(notification.title, notification);
+            }
+            else{
+                const notification = {
+                    title: 'Text Editor ',
+                    body: 'Error Saving File',
+                    icon : path.join(__dirname,'./assets/images/error.png')
+                }
+                const myNotification = new window.Notification(notification.title, notification);
+            }
+            const modalpath = path.join('file://',__dirname,'save.html');
+                let win = new BrowserWindow({
+                    width:400, 
+                    height:200,
+                    webPreferences:{
+                        nodeIntegration:true
+                    }
+                });
+                win.on('close',function(){
+                    win = null
+                });
+                win.loadURL(modalpath);
+                win.show();
+        });
+        ipcRenderer.on('save-clicked',()=>{
+            saveText();
+        })
+    </script>
+  </body>
+</html>

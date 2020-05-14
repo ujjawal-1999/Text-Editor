@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Saved</title>
+    <style>
+        #closeBtn{
+            cursor:pointer;
+            text-decoration: underline;
+        }
+    </style>
+
+</head>
+<body>
+    <div>
+        <h1 id="message"> File Saved Successfully</h1>
+        <a id="closeBtn">Close Window</a><br>
+    </div>
+    <script>
+        const electron = require('electron');
+        const path = require('path');
+        const remote = electron.remote;
+        const ipc = electron.ipcRenderer;
+
+        const closeBtn = document.getElementById('closeBtn');
+        const message = document.getElementById('message');
+        
+        closeBtn.addEventListener('click',(event)=>{
+             var window = remote.getCurrentWindow();
+            window.close();
+        });
+        ipcRenderer.on('saved',(event,results)=>{
+            if(results === 'success'){
+                message.innerText = 'File Successfully Saved';
+            }
+            else{
+                message.innerText = 'Error Saving File';
+            }
+        });        
+    </script>
+</body>
+</html>
