@@ -12,7 +12,7 @@
   "author": "Ujjawal Jain",
   "license": "MIT",
   "dependencies": {
-    "electron": "^8.2.5",
+    "electron": "^11.5.0",
     "lodash": "^4.17.19"
   },
   "devDependencies": {
